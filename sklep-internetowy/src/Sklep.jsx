@@ -1,14 +1,4 @@
-function Sklep({ produkty }) {
-  const handleKup = (zdjecie) => {
-    // Tworzymy link do pobrania zdjęcia
-    const link = document.createElement('a');
-    link.href = zdjecie;
-    link.download = zdjecie.split('/').pop(); // Pobieramy nazwę pliku
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
+function Sklep({ produkty, onKup, onDostawa }) {
   return (
     <div className="sklep-container">
       {produkty.map(produkt => (
@@ -20,12 +10,27 @@ function Sklep({ produkty }) {
           />
           <h3 className="produkt-nazwa">{produkt.nazwa}</h3>
           <p className="produkt-cena">{produkt.cena.toFixed(2)} zł</p>
-          <button 
-            className="przycisk" 
-            onClick={() => handleKup(produkt.zdjecie)}
-          >
-            Kup
-          </button>
+          <p className="produkt-ilosc">Ilość: {produkt.ilosc}</p>
+          
+          <div className="przyciski-container">
+            {produkt.ilosc > 0 ? (
+              <button 
+                className="przycisk przycisk-kup" 
+                onClick={() => onKup(produkt.id)}
+              >
+                Kup
+              </button>
+            ) : (
+              <p className="brak-produktu">Brak produktu</p>
+            )}
+            
+            <button 
+              className="przycisk przycisk-dostawa" 
+              onClick={() => onDostawa(produkt.id)}
+            >
+              Dostawa
+            </button>
+          </div>
         </div>
       ))}
     </div>
