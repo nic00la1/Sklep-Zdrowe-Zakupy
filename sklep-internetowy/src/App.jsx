@@ -5,6 +5,19 @@ import { useState } from 'react';
 function App() {
   const [portfel, setPortfel] = useState(100);
   
+  // Funkcja sprawdzająca stan portfela
+  const sprawdzStanPortfela = (nowyPortfel) => {
+    if (nowyPortfel <= 0) {
+      alert("💸 Portfel jest pusty! Nie możesz już nic kupić.");
+    } else if (nowyPortfel <= 20 && nowyPortfel > 10) {
+      alert("⚠️ Uwaga! Zostało Ci mało pieniędzy w portfelu!\n\n" +
+            `Pozostało: ${nowyPortfel.toFixed(2)} zł`);
+    } else if (nowyPortfel <= 10 && nowyPortfel > 0) {
+      alert("🚨 Krytycznie niski stan portfela!\n\n" +
+            `Pozostało tylko: ${nowyPortfel.toFixed(2)} zł`);
+    }
+  };
+  
   const poczatkoweProdukty = [
     { id: 1, nazwa: "Mleko", cena: 5.50, zdjecie: "/mleko.jpg", ilosc: 10 },
     { id: 2, nazwa: "Chleb", cena: 3.20, zdjecie: "/chleb.png", ilosc: 15 },
@@ -35,22 +48,63 @@ function App() {
   // Funkcja kupowania produktu
   const handleKup = (produktId) => {
     const produkt = produkty.find(p => p.id === produktId);
-    if (produkt && produkt.ilosc > 0 && portfel >= produkt.cena) {
-      setProdukty(prev => prev.map(p => 
-        p.id === produktId ? { ...p, ilosc: p.ilosc - 1 } : p
-      ));
-      setPortfel(prev => prev - produkt.cena);
+    
+    if (!produkt) {
+      alert("❌ Produkt nie został znaleziony!");
+      return;
     }
+    
+    if (produkt.ilosc <= 0) {
+      alert(`❌ Brak produktu "${produkt.nazwa}" w magazynie!\n\n💡 Skorzystaj z opcji "Dostawa", aby uzupełnić zapasy.`);
+      return;
+    }
+    
+    if (portfel < produkt.cena) {
+      const brakuje = (produkt.cena - portfel).toFixed(2);
+      alert(`💰 Nie stać Cię na "${produkt.nazwa}"!\n\n` +
+            `Cena produktu: ${produkt.cena.toFixed(2)} zł\n` +
+            `Twój portfel: ${portfel.toFixed(2)} zł\n` +
+            `Brakuje Ci: ${brakuje} zł`);
+      return;
+    }
+    
+    // Jeśli wszystko OK - dokonaj zakupu
+    const nowyPortfel = portfel - produkt.cena;
+    setProdukty(prev => prev.map(p => 
+      p.id === produktId ? { ...p, ilosc: p.ilosc - 1 } : p
+    ));
+    setPortfel(nowyPortfel);
+    
+    // Alert o udanym zakupie
+    alert(`✅ Zakupiono "${produkt.nazwa}" za ${produkt.cena.toFixed(2)} zł!\n\n` +
+          `💰 Pozostało w portfelu: ${nowyPortfel.toFixed(2)} zł`);
+    
+    // Sprawdź stan portfela po zakupie
+    sprawdzStanPortfela(nowyPortfel);
   };
 
   // Funkcja dostawy produktu (przywraca początkową ilość)
   const handleDostawa = (produktId) => {
     const poczatkowyProdukt = poczatkoweProdukty.find(p => p.id === produktId);
-    if (poczatkowyProdukt) {
-      setProdukty(prev => prev.map(p => 
-        p.id === produktId ? { ...p, ilosc: poczatkowyProdukt.ilosc } : p
-      ));
+    const aktualnyProdukt = produkty.find(p => p.id === produktId);
+    
+    if (!poczatkowyProdukt || !aktualnyProdukt) {
+      alert("❌ Wystąpił błąd podczas dostawy!");
+      return;
     }
+    
+    if (aktualnyProdukt.ilosc >= poczatkowyProdukt.ilosc) {
+      alert(`📦 Produkt "${aktualnyProdukt.nazwa}" jest już w pełni zaopatrzony!\n\n` +
+            `Ilość w magazynie: ${aktualnyProdukt.ilosc} szt.`);
+      return;
+    }
+    
+    setProdukty(prev => prev.map(p => 
+      p.id === produktId ? { ...p, ilosc: poczatkowyProdukt.ilosc } : p
+    ));
+    
+    alert(`🚚 Dostawa zakończona!\n\n` +
+          `Produkt "${aktualnyProdukt.nazwa}" został uzupełniony do ${poczatkowyProdukt.ilosc} sztuk.`);
   };
 
   return (
